@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Sử Giao Dịch</title>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.2/dist/ionicons/ionicons.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1e1e1e;
+            color: #f5f5f5;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .transaction-empty {
+            text-align: center;
+            color: #f5f5f5;
+            margin-top: 50px;
+        }
+        .transaction-empty ion-icon {
+            font-size: 100px;
+            color: #90caf9;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #2b2b2b;
+            color: #f5f5f5;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #333;
+        }
+        img {
+            width: 50px;
+            height: 50px;
+        }
+        .btn-danger {
+            padding: 5px 10px;
+            background-color: #cf6679;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+        .back-button {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: none;
+            border: none;
+            color: #90caf9;
+            font-size: 32px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: color 0.3s ease;
+        }
+        .back-button:hover {
+            color: #42a5f5;
+        }
+        @media (max-width: 768px) {
+            .back-button {
+                font-size: 28px;
+            }
+        }
+        .status {
+		    display: inline-block;
+		    padding: 5px 10px;
+		    border-radius: 5px;
+		    font-weight: bold;
+		    text-align: center;
+		    font-size: 14px;
+		    transition: all 0.3s ease;
+		}
+		
+		.status:empty {
+		    display: none;
+		}
+		
+		.status {
+		    background-color: #3e8e41; /* Màu nền xanh cho "Đã mua" */
+		    color: white;
+		    border: 2px solid #2b6d32; /* Viền xanh cho "Đã mua" */
+		}
+		
+		.status.chwait {
+		    background-color: #ffeb3b; /* Màu nền vàng cho "Chờ xác nhận" */
+		    color: black;
+		    border: 2px solid #c8b300; /* Viền vàng cho "Chờ xác nhận" */
+		}
+		
+		.status:hover {
+		    transform: scale(1.1);
+		}
+        
+    </style>
+</head>
+<body>
+    <!-- Nút Back -->
+    <button class="back-button" onclick="window.location.href='/store'">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+
+    <h2>Lịch Sử Giao Dịch</h2>
+    
+    <!-- Kiểm tra danh sách lịch sử -->
+    <div th:if="${lichsuList != null and #lists.size(lichsuList) > 0}">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên Khách Hàng</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th>Ảnh</th>
+                    <th>Giá</th>
+                    <th>Số Lượng</th>
+                    <th>Thành Tiền</th>
+                    <th>Ngày Lập</th>
+                    <th>Trạng thái</th>
+                    <th>Hành Động</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="lichsu : ${lichsuList}">
+                    <td th:text="${lichsu.id}"></td>
+                    <td th:text="${lichsu.tenKhachHang}"></td>
+                    <td th:text="${lichsu.tenSanPham}"></td>
+                    <td>
+                        <img th:src="@{${lichsu.anhSanPham}}" alt="Ảnh sản phẩm">
+                    </td>
+                    <td th:text="${lichsu.giaSanPham} + '₫'"></td>
+                    <td th:text="${lichsu.soLuong}"></td>
+                    <td th:text="${lichsu.thanhTien} + '₫'"></td>
+                    <td th:text="${lichsu.ngayLap}"></td>
+                    <td>
+					    <span th:class="${lichsu.daMua ? 'status' : 'status chwait'}" th:text="${lichsu.daMua ? 'Đã mua' : 'Chờ xác nhận'}"></span>
+					</td>
+                    
+                    
+                    <td>
+                        <!-- Nút xóa -->
+                        <form th:action="@{/lichsu/xoa/{id}(id=${lichsu.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="btn-danger">Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Nếu danh sách trống -->
+    <div th:if="${lichsuList == null or #lists.isEmpty(lichsuList)}" class="transaction-empty">
+        <ion-icon name="document-outline"></ion-icon>
+        <h2>Không có giao dịch nào</h2>
+    </div>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin</title>
+    <link rel="stylesheet" th:href="@{/css/qlsanpham.css}">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="logo-github"></ion-icon>
+                        </span>
+                        <span class="title">Admin Panel</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/dashboard">
+                        <span class="icon">
+                            <ion-icon name="home-outline"></ion-icon>
+                        </span>
+                        <span class="title">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/qlhd">
+                        <span class="icon">
+                            <ion-icon name="storefront-outline"></ion-icon>
+                        </span>
+                        <span class="title">Orders</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/sanpham">
+                        <span class="icon">
+                            <ion-icon name="pricetags-outline"></ion-icon>
+                        </span>
+                        <span class="title">Products</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="main">
+            <div class="topbar">
+                <div class="toggle">
+                    <ion-icon name="menu-outline"></ion-icon>
+                </div>
+                <div class="search">
+                     <label>
+                         <form action="/admin/sanpham" method="get">
+                              <input type="text" name="search" placeholder="Search here" th:value="${search}">
+                              <button type="submit"><ion-icon name="search-outline"></ion-icon></button>
+                         </form>
+                    </label>
+                </div>
+                <div class="user">
+				    <img th:src="${session.user != null ? session.user.image : '/images/user/avt.jpg'}" 
+				         alt="User Avatar" 
+				         class="user-avatar">
+				    <div class="user-menu">
+				        <ul>
+				            <li th:if="${session.user == null}">
+							    <a href="#" onclick="showLoginModal()">
+							        <ion-icon name="log-in-outline"></ion-icon> Đăng nhập
+							    </a>
+							</li>
+							<li th:if="${session.user != null}">
+							    <a href="/admin/logout">
+							        <ion-icon name="log-out-outline"></ion-icon> Đăng xuất
+							    </a>
+							</li>
+							<li th:if="${session.user != null}">
+							    <a href="#" onclick="showChangePasswordModal()">
+							        <ion-icon name="key-outline"></ion-icon> Đổi mật khẩu
+							    </a>
+							</li>				            
+				        </ul>
+				    </div>
+				</div>
+				<!-- Modal Đổi mật khẩu -->
+				<div id="changePasswordModal" class="modal">
+				    <div class="modal-content">
+				        <span class="close" onclick="closeChangePasswordModal()">&times;</span>
+				        <h2>Đổi mật khẩu</h2>
+				        <!-- Form đổi mật khẩu -->
+				        <form action="/admin/change-password" method="POST">
+				        	<div class="form-group">
+				        		<label for="currentPassword">Mật khẩu hiện tại:</label>
+				            	<input type="password" id="currentPassword" name="currentPassword" required>
+				        	</div>
+				            <div class="form-group">
+				        		<label for="newPassword">Mật khẩu mới:</label>
+				            	<input type="password" id="newPassword" name="newPassword" required>
+				        	</div>
+				        	<div class="form-group">
+				        		<label for="confirmPassword">Xác nhận mật khẩu:</label>
+				            	<input type="password" id="confirmPassword" name="confirmPassword" required>
+				        	</div>
+				            <div id="error-changePass" class="error-message" th:if="${errorChangePass != null}">
+				                <p th:text="${errorChangePass}"></p>
+				            </div>
+				            <button type="submit" class="btn-login">Đổi mật khẩu</button>
+				        </form>
+				    </div>
+				</div>
+                <!-- Modal for Login -->
+				<div id="loginModal" class="modal">
+				    <div class="modal-content">
+				        <span class="close" onclick="closeLoginModal()">&times;</span>
+				        <div id="error-user" class="error-message" th:if="${errorUser != null}">
+				             <p th:text="${errorUser}"></p>
+				        </div>
+				        <h2>Đăng Nhập</h2>
+				        <form action="/admin/login" method="post">
+				            <div class="form-group">
+				                <label for="username">Tài khoản:</label>
+				                <input type="text" id="username" name="username" required>
+				            </div>
+				            <div class="form-group">
+				                <label for="password">Mật khẩu:</label>
+				                <input type="password" id="password" name="password" required>
+				            </div>
+				            <div id="error-message" class="error-message" th:if="${errorLoginMessage != null}">
+				                <p th:text="${errorLoginMessage}"></p>
+				            </div>
+				            <button type="submit" class="btn-login">Đăng Nhập</button>
+				            <span id="captcha-error" class="error-message" style="background-color: transparent; border: none;" 
+                			th:if="${errorMessageCaptcha != null}" th:text="${errorMessageCaptcha}"></span>
+                			<br>
+				        </form>
+				    </div>
+				</div>
+            </div>
+
+            <!-- ================ Order Details List ================= -->
+            <div class="details">
+                <div class="recentOrders">
+                    <div class="cardHeader">
+                        <h2>Recent Orders</h2>
+                        <a href="#" class="btn">View All</a>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <td>Name</td>
+                                <td>Price</td>
+                                <td>Payment</td>
+                                <td>Status</td>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>Star Refrigerator</td>
+                                <td>$1200</td>
+                                <td>Paid</td>
+                                <td><span class="status delivered">Delivered</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Dell Laptop</td>
+                                <td>$110</td>
+                                <td>Due</td>
+                                <td><span class="status pending">Pending</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Apple Watch</td>
+                                <td>$1200</td>
+                                <td>Paid</td>
+                                <td><span class="status return">Return</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Addidas Shoes</td>
+                                <td>$620</td>
+                                <td>Due</td>
+                                <td><span class="status inProgress">In Progress</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Star Refrigerator</td>
+                                <td>$1200</td>
+                                <td>Paid</td>
+                                <td><span class="status delivered">Delivered</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Dell Laptop</td>
+                                <td>$110</td>
+                                <td>Due</td>
+                                <td><span class="status pending">Pending</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Apple Watch</td>
+                                <td>$1200</td>
+                                <td>Paid</td>
+                                <td><span class="status return">Return</span></td>
+                            </tr>
+
+                            <tr>
+                                <td>Addidas Shoes</td>
+                                <td>$620</td>
+                                <td>Due</td>
+                                <td><span class="status inProgress">In Progress</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ================= New Customers ================ -->
+                <div class="recentCustomers">
+                    <div class="cardHeader">
+                        <h2>Recent Customers</h2>
+                    </div>
+
+                    <table>
+                        <tr>
+                            <td width="60px">
+                                <div class="imgBx"><img src="assets/imgs/customer01.jpg" alt=""></div>
+                            </td>
+                            <td>
+                                <h4>No Name <br> <span>VN</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="60px">
+                                <div class="imgBx"><img src="assets/imgs/customer01.jpg" alt=""></div>
+                            </td>
+                            <td>
+                                <h4>No Name <br> <span>VN</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="60px">
+                                <div class="imgBx"><img src="assets/imgs/customer01.jpg" alt=""></div>
+                            </td>
+                            <td>
+                                <h4>No Name <br> <span>VN</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="60px">
+                                <div class="imgBx"><img src="assets/imgs/customer01.jpg" alt=""></div>
+                            </td>
+                            <td>
+                                <h4>No Name <br> <span>VN</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="60px">
+                                <div class="imgBx"><img src="assets/imgs/customer01.jpg" alt=""></div>
+                            </td>
+                            <td>
+                                <h4>No Name <br> <span>VN</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="60px">
+                                <div class="imgBx"><img src="assets/imgs/customer01.jpg" alt=""></div>
+                            </td>
+                            <td>
+                                <h4>No Name <br> <span>VN</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="60px">
+                                <div class="imgBx"><img src="assets/imgs/customer01.jpg" alt=""></div>
+                            </td>
+                            <td>
+                                <h4>No Name <br> <span>VN</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="60px">
+                                <div class="imgBx"><img src="assets/imgs/customer01.jpg" alt=""></div>
+                            </td>
+                            <td>
+                                <h4>No Name <br> <span>VN</span></h4>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========== Scripts =========  -->
+    <script th:src="@{/js/admin.js}"></script>
+
+    <!-- ====== ionicons ======= -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>

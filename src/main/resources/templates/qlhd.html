@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Quản Lý Hóa Đơn</title>
+    <link rel="stylesheet" th:href="@{/css/qlsanpham.css}">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+    	.icon-btn {
+		    background: none;
+		    border: none;
+		    cursor: pointer;
+		    font-size: 1.5rem;
+		    margin: 0 5px;
+		    display: inline-flex;
+		    align-items: center;
+		    justify-content: center;
+		    color: #555;
+		    transition: color 0.3s ease;
+		}
+		
+		.icon-btn:hover {
+		    color: #007bff; /* Màu xanh khi hover */
+		}
+		
+		.icon-btn.confirm:hover {
+		    color: #28a745; /* Màu xanh lá cho nút xác nhận */
+		}
+		
+		.icon-btn.delete:hover {
+		    color: #dc3545; /* Màu đỏ cho nút xóa */
+		}
+		/* Cơ bản cho trạng thái */
+		.status-cell span {
+		    padding: 4px 8px;
+		    font-weight: bold;
+		    border-radius: 12px;
+		    display: inline-block;
+		    font-size: 0.9em;
+		}
+		
+		/* Viền xanh lá cho trạng thái đã xác nhận */
+		.status-confirmed {
+		    border: 2px solid #28a745; /* Viền xanh lá */
+		    color: #28a745; /* Màu chữ xanh lá */
+		}
+		
+		/* Viền vàng cho trạng thái chưa xác nhận */
+		.status-pending {
+		    border: 2px solid #ffc107; /* Viền vàng */
+		    color: #ffc107; /* Màu chữ vàng */
+		}
+		
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="logo-github"></ion-icon>
+                        </span>
+                        <span class="title">Admin Panel</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/dashboard">
+                        <span class="icon">
+                            <ion-icon name="home-outline"></ion-icon>
+                        </span>
+                        <span class="title">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/qlhd">
+                        <span class="icon">
+                            <ion-icon name="storefront-outline"></ion-icon>
+                        </span>
+                        <span class="title">Orders</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/sanpham">
+                        <span class="icon">
+                            <ion-icon name="pricetags-outline"></ion-icon>
+                        </span>
+                        <span class="title">Products</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="main">
+            <div class="topbar">
+                <div class="toggle">
+                    <ion-icon name="menu-outline"></ion-icon>
+                </div>
+                <div class="search">
+                     <label>
+                         <form action="/admin/sanpham" method="get">
+                              <input type="text" name="search" placeholder="Search here" th:value="${search}">
+                              <button type="submit"><ion-icon name="search-outline"></ion-icon></button>
+                         </form>
+                    </label>
+                </div>
+                <div class="user">
+				    <img th:src="${session.user != null ? session.user.image : '/images/user/avt.jpg'}" 
+				         alt="User Avatar" 
+				         class="user-avatar">
+				    <div class="user-menu">
+				        <ul>
+				            <li th:if="${session.user == null}">
+							    <a href="#" onclick="showLoginModal()">
+							        <ion-icon name="log-in-outline"></ion-icon> Đăng nhập
+							    </a>
+							</li>
+							<li th:if="${session.user != null}">
+							    <a href="/admin/logout">
+							        <ion-icon name="log-out-outline"></ion-icon> Đăng xuất
+							    </a>
+							</li>
+							<li th:if="${session.user != null}">
+							    <a href="#" onclick="showChangePasswordModal()">
+							        <ion-icon name="key-outline"></ion-icon> Đổi mật khẩu
+							    </a>
+							</li>				            
+				        </ul>
+				    </div>
+				</div>
+				<!-- Modal Đổi mật khẩu -->
+				<div id="changePasswordModal" class="modal">
+				    <div class="modal-content">
+				        <span class="close" onclick="closeChangePasswordModal()">&times;</span>
+				        <h2>Đổi mật khẩu</h2>
+				        <!-- Form đổi mật khẩu -->
+				        <form action="/admin/change-password" method="POST">
+				        	<div class="form-group">
+				        		<label for="currentPassword">Mật khẩu hiện tại:</label>
+				            	<input type="password" id="currentPassword" name="currentPassword" required>
+				        	</div>
+				            <div class="form-group">
+				        		<label for="newPassword">Mật khẩu mới:</label>
+				            	<input type="password" id="newPassword" name="newPassword" required>
+				        	</div>
+				        	<div class="form-group">
+				        		<label for="confirmPassword">Xác nhận mật khẩu:</label>
+				            	<input type="password" id="confirmPassword" name="confirmPassword" required>
+				        	</div>
+				            <div id="error-changePass" class="error-message" th:if="${errorChangePass != null}">
+				                <p th:text="${errorChangePass}"></p>
+				            </div>
+				            <button type="submit" class="btn-login">Đổi mật khẩu</button>
+				        </form>
+				    </div>
+				</div>
+				<div id="successChangePass" style="display: none;" th:if="${successChangePass != null}">
+					<p th:text="${successChangePass}"></p>
+				</div>
+                <!-- Modal for Login -->
+				<div id="loginModal" class="modal">
+				    <div class="modal-content">
+				        <span class="close" onclick="closeLoginModal()">&times;</span>
+				        <div id="error-user" class="error-message" th:if="${errorUser != null}">
+				             <p th:text="${errorUser}"></p>
+				        </div>
+				        <h2>Đăng Nhập</h2>
+				        <form action="/admin/login" method="post">
+				            <div class="form-group">
+				                <label for="username">Tài khoản:</label>
+				                <input type="text" id="username" name="username" required>
+				            </div>
+				            <div class="form-group">
+				                <label for="password">Mật khẩu:</label>
+				                <input type="password" id="password" name="password" required>
+				            </div>
+				            <div id="error-message" class="error-message" th:if="${errorLoginMessage != null}">
+				                <p th:text="${errorLoginMessage}"></p>
+				            </div>
+				            <span id="captcha-error" class="error-message" style="background-color: transparent; border: none;" 
+                			th:if="${errorMessageCaptcha != null}" th:text="${errorMessageCaptcha}"></span>
+                			<br>
+				            <button type="submit" class="btn-login">Đăng Nhập</button>
+				        </form>
+				    </div>
+				</div>
+            </div>
+
+            <div class="details">
+                <div class="recentOrders">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên Khách Hàng</th>
+                                <th>Tên Sản Phẩm</th>
+                                <th>Ảnh</th>
+                                <th>Giá</th>
+                                <th>Số Lượng</th>
+                                <th>Thành Tiền</th>
+                                <th>Ngày Lập</th>
+                                <th>Trạng Thái</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+						    <tr th:each="lichsu : ${lichsuList}">
+						        <td th:text="${lichsu.id}"></td>
+						        <td th:text="${lichsu.tenKhachHang}"></td>
+						        <td th:text="${lichsu.tenSanPham}"></td>
+						        <td>
+						            <img th:src="@{${lichsu.anhSanPham}}" alt="Ảnh sản phẩm" width="50" height="50">
+						        </td>
+						        <td th:text="${lichsu.giaSanPham}"></td>
+						        <td th:text="${lichsu.soLuong}"></td>
+						        <td th:text="${lichsu.thanhTien}"></td>
+						        <td th:text="${lichsu.ngayLap}"></td>
+						        <td class="status-cell">
+								    <!-- Hiển thị trạng thái xác nhận với viền quanh chữ -->
+								    <span th:classappend="${lichsu.daMua == true ? 'status-confirmed' : 'status-pending'}" 
+								          th:text="${lichsu.daMua == true ? 'Đã xác nhận' : 'Chưa xác nhận'}">
+								    </span>
+								</td>
+						        
+						        <td>
+						            <!-- Icon xác nhận -->
+						            <form th:action="@{/qlhd/xacnhan/{maHD}(maHD=${lichsu.maHD})}" method="post" th:if="${lichsu.daMua == null || !lichsu.daMua}" style="display:inline;">
+						                <button type="submit" class="icon-btn confirm">
+						                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+						                </button>
+						            </form>
+						            <!-- Icon xóa -->
+						            <form th:action="@{/qlhd/xoa/{id}(id=${lichsu.id})}" method="post" style="display:inline;">
+						                <button type="submit" class="icon-btn delete">
+						                    <ion-icon name="trash-outline"></ion-icon>
+						                </button>
+						            </form>
+						        </td>
+						    </tr>
+						</tbody>
+                      
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/admin.js}"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>

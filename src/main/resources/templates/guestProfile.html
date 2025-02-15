@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cập nhật thông tin cá nhân</title>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.2/dist/ionicons/ionicons.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            padding: 20px 30px;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            color: #90caf9;
+            margin-bottom: 20px;
+        }
+
+        .avatar-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .avatar-container img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #90caf9;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #b0bec5;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #424242;
+            border-radius: 5px;
+            background-color: #2c2c2c;
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="file"]:focus {
+            border-color: #90caf9;
+            outline: none;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #90caf9;
+            color: #1e1e1e;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #42a5f5;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: none;
+            border: none;
+            color: #90caf9;
+            font-size: 32px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: color 0.3s ease;
+        }
+
+        .back-button:hover {
+            color: #42a5f5;
+            background: #ffffff;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px 20px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .back-button {
+                font-size: 28px;
+                top: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Nút Back -->
+    <button class="back-button" onclick="window.location.href='/store'">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+
+    <div class="container">
+        <h1>Cập nhật thông tin cá nhân</h1>
+
+        <!-- Hiển thị ảnh đại diện -->
+        <div class="avatar-container">
+            <label for="avatar">Avatar:</label>
+            <img th:src="@{${khachHang.anh}}" alt="Avatar">
+        </div>
+
+        <form action="/form-sign-in-up/profile/update" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="maKH" th:value="${khachHang.maKH}">
+            <input type="hidden" name="anhCu" th:value="${khachHang.anh}">
+
+            <div>
+                <label for="tenKH">Họ tên:</label>
+                <input type="text" id="tenKH" name="tenKH" th:value="${khachHang.tenKH}" required>
+            </div>
+
+            <div>
+                <label for="sdt">Số điện thoại:</label>
+                <input type="text" id="sdt" name="sdt" th:value="${khachHang.sdt}">
+            </div>
+
+            <div>
+                <label for="diaChi">Địa chỉ:</label>
+                <input type="text" id="diaChi" name="diaChi" th:value="${khachHang.diaChi}">
+            </div>
+
+            <div>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" th:value="${khachHang.email}" required>
+            </div>
+
+            <div>
+                <label for="tenDN">Tên đăng nhập:</label>
+                <input type="text" id="tenDN" name="tenDN" th:value="${khachHang.tenDN}" required>
+            </div>
+
+            <div>
+                <label for="matKhau">Mật khẩu:</label>
+                <input type="password" id="matKhau" name="matKhau" th:value="${khachHang.matKhau}" required>
+            </div>
+
+            <div>
+                <label for="anh">Chọn ảnh mới:</label>
+                <input type="file" id="anh" name="anh">
+            </div>
+
+            <button type="submit">Cập nhật</button>
+        </form>
+    </div>
+</body>
+</html>

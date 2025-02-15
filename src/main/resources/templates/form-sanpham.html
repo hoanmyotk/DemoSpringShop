@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Quản Lý Sản Phẩm</title>
+    <link rel="stylesheet" th:href="@{/css/qlsanpham.css}">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+    	/* Form container */
+		.recentOrders form{
+		  width: 50%;
+		  margin: 20px auto;
+		  padding: 20px;
+		  background-color: #f9f9f9;
+		  border-radius: 8px;
+		  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+		}
+		
+		/* Card Header */
+		.cardHeader {
+		  text-align: center;
+		  margin-bottom: 20px;
+		}
+		
+		.cardHeader h2 {
+		  font-size: 24px;
+		  color: #333;
+		}
+		
+		/* Form group styling */
+		.form-group {
+		  margin-bottom: 15px;
+		}
+		
+		.form-group label {
+		  display: block;
+		  font-weight: bold;
+		  margin-bottom: 5px;
+		}
+		
+		.form-group input,
+		.form-group select {
+		  width: 100%;
+		  padding: 8px;
+		  font-size: 16px;
+		  border: 1px solid #ccc;
+		  border-radius: 4px;
+		}
+		
+		.form-group input[type="number"] {
+		  -moz-appearance: textfield; /* Remove spin buttons for number input in Firefox */
+		}
+		
+		.form-group input[type="file"] {
+		  padding: 5px;
+		}
+		
+		.form-group input:focus,
+		.form-group select:focus {
+		  outline: none;
+		  border-color: #4caf50;
+		}
+		
+		/* Actions container */
+		.actions {
+		  display: flex;
+		  justify-content: space-between;
+		  align-items: center;
+		}
+		
+		/* Button styling */
+		.btn {
+		  padding: 10px 20px;
+		  font-size: 16px;
+		  border-radius: 5px;
+		  cursor: pointer;
+		  border: none;
+		  transition: background-color 0.3s;
+		}
+		
+		.update-btn {
+		  background-color: #4caf50;
+		  color: white;
+		}
+		
+		.update-btn:hover {
+		  background-color: #45a049;
+		}
+		
+		.cancel-btn {
+		  background-color: #f44336;
+		  color: white;
+		}
+		
+		.cancel-btn:hover {
+		  background-color: #e53935;
+		}
+		
+		/* Placeholder styling for inputs */
+		input::placeholder {
+		  color: #888;
+}
+    	
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="logo-github"></ion-icon>
+                        </span>
+                        <span class="title">Admin Panel</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/dashboard">
+                        <span class="icon">
+                            <ion-icon name="home-outline"></ion-icon>
+                        </span>
+                        <span class="title">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/qlhd">
+                        <span class="icon">
+                            <ion-icon name="storefront-outline"></ion-icon>
+                        </span>
+                        <span class="title">Orders</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/sanpham">
+                        <span class="icon">
+                            <ion-icon name="pricetags-outline"></ion-icon>
+                        </span>
+                        <span class="title">Products</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="main">
+            <div class="topbar">
+                <div class="toggle">
+                    <ion-icon name="menu-outline"></ion-icon>
+                </div>
+                <div class="search">
+                     <label>
+                         <form action="/admin/sanpham" method="get">
+                              <input type="text" name="search" placeholder="Search here" th:value="${search}">
+                              <button type="submit"><ion-icon name="search-outline"></ion-icon></button>
+                         </form>
+                    </label>
+                </div>
+                <div class="user">
+				    <img th:src="${session.user != null ? session.user.image : '/images/user/avt.jpg'}" 
+				         alt="User Avatar" 
+				         class="user-avatar">
+				    <div class="user-menu">
+				        <ul>
+				            <li th:if="${session.user == null}">
+							    <a href="#" onclick="showLoginModal()">
+							        <ion-icon name="log-in-outline"></ion-icon> Đăng nhập
+							    </a>
+							</li>
+							<li th:if="${session.user != null}">
+							    <a href="/admin/logout">
+							        <ion-icon name="log-out-outline"></ion-icon> Đăng xuất
+							    </a>
+							</li>
+							<li th:if="${session.user != null}">
+							    <a href="#" onclick="showChangePasswordModal()">
+							        <ion-icon name="key-outline"></ion-icon> Đổi mật khẩu
+							    </a>
+							</li>				            
+				        </ul>
+				    </div>
+				</div>
+				<!-- Modal Đổi mật khẩu -->
+				<div id="changePasswordModal" class="modal">
+				    <div class="modal-content">
+				        <span class="close" onclick="closeChangePasswordModal()">&times;</span>
+				        <h2>Đổi mật khẩu</h2>
+				        <!-- Form đổi mật khẩu -->
+				        <form action="/admin/change-password" method="POST">
+				        	<div class="form-group">
+				        		<label for="currentPassword">Mật khẩu hiện tại:</label>
+				            	<input type="password" id="currentPassword" name="currentPassword" required>
+				        	</div>
+				            <div class="form-group">
+				        		<label for="newPassword">Mật khẩu mới:</label>
+				            	<input type="password" id="newPassword" name="newPassword" required>
+				        	</div>
+				        	<div class="form-group">
+				        		<label for="confirmPassword">Xác nhận mật khẩu:</label>
+				            	<input type="password" id="confirmPassword" name="confirmPassword" required>
+				        	</div>
+				            <div id="error-changePass" class="error-message" th:if="${errorChangePass != null}">
+				                <p th:text="${errorChangePass}"></p>
+				            </div>
+				            <button type="submit" class="btn-login">Đổi mật khẩu</button>
+				        </form>
+				    </div>
+				</div>
+				<div id="successChangePass" style="display: none;" th:if="${successChangePass != null}">
+					<p th:text="${successChangePass}"></p>
+				</div>
+                <!-- Modal for Login -->
+				<div id="loginModal" class="modal">
+				    <div class="modal-content">
+				        <span class="close" onclick="closeLoginModal()">&times;</span>
+				        <div id="error-user" class="error-message" th:if="${errorUser != null}">
+				             <p th:text="${errorUser}"></p>
+				        </div>
+				        <h2>Đăng Nhập</h2>
+				        <form action="/admin/login" method="post">
+				            <div class="form-group">
+				                <label for="username">Tài khoản:</label>
+				                <input type="text" id="username" name="username" required>
+				            </div>
+				            <div class="form-group">
+				                <label for="password">Mật khẩu:</label>
+				                <input type="password" id="password" name="password" required>
+				            </div>
+				            <div id="error-message" class="error-message" th:if="${errorLoginMessage != null}">
+				                <p th:text="${errorLoginMessage}"></p>
+				            </div>
+				            <span id="captcha-error" class="error-message" style="background-color: transparent; border: none;" 
+                			th:if="${errorMessageCaptcha != null}" th:text="${errorMessageCaptcha}"></span>
+                			<br>
+				            <button type="submit" class="btn-login">Đăng Nhập</button>
+				        </form>
+				    </div>
+				</div>
+            </div>
+
+            <div class="details">
+		    <div class="recentOrders">
+		        <form th:action="@{${sanPham == null ? '/admin/create-sanpham' : '/admin/update-sanpham'}}"
+				      method="post" enctype="multipart/form-data">
+				    <div class="cardHeader">
+				        <h2 th:text="${sanPham == null ? 'Thêm Sản Phẩm' : 'Sửa Sản Phẩm'}"></h2>
+				    </div>
+				
+				    <!-- Hidden field for Product ID -->
+				    <input type="hidden" name="maSP" th:value="${sanPham != null ? sanPham.maSP : ''}">
+				
+				    <!-- Product Name -->
+				    <div class="form-group">
+				        <label>Tên sản phẩm:</label>
+				        <input type="text" name="tenSP" th:value="${sanPham != null ? sanPham.tenSP : ''}" required>
+				    </div>
+				
+				    <!-- Product Category -->
+				    <div class="form-group">
+				        <label>Loại sản phẩm:</label>
+				        <select name="maLoai" required>
+				            <option value="" th:selected="${sanPham == null}">Chọn loại</option>
+				            <th:block th:each="loai : ${danhSachLoai}">
+				                <option th:value="${loai.maLoai}"
+				                        th:selected="${sanPham != null and sanPham.maLoai == loai.maLoai}"
+				                        th:text="${loai.tenLoai}"></option>
+				            </th:block>
+				        </select>
+				    </div>
+				
+				    <!-- Price -->
+				    <div class="form-group">
+				        <label>Giá:</label>
+				        <input type="number" name="gia" th:value="${sanPham != null ? sanPham.gia : 0}" min="100" required>
+				    </div>
+				
+				    <!-- Quantity -->
+				    <div class="form-group">
+				        <label>Số lượng:</label>
+				        <input type="number" name="soLuong" th:value="${sanPham != null ? sanPham.soLuong : 0}" min="1" required>
+				    </div>
+				
+				    <!-- Image -->
+				    <input type="hidden" name="anhCu" th:value="${sanPham != null ? sanPham.anh : ''}">
+				    <div class="form-group">
+				        <label>Ảnh:</label>
+				        <input type="file" name="anh">
+				    </div>
+				
+				    <!-- Actions -->
+				    <div class="actions">
+				        <button type="submit" class="btn update-btn"
+				                th:text="${sanPham == null ? 'Thêm' : 'Cập Nhật'}"></button>
+				        <a href="/admin/sanpham" class="btn cancel-btn">Hủy</a>
+				    </div>
+				</form>
+		        
+		    </div>
+		</div>
+            
+        </div>
+    </div>
+
+    <script th:src="@{/js/admin.js}"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>

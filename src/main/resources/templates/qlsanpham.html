@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Quản Lý Sản Phẩm</title>
+    <link rel="stylesheet" th:href="@{/css/qlsanpham.css}">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="logo-github"></ion-icon>
+                        </span>
+                        <span class="title">Admin Panel</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/dashboard">
+                        <span class="icon">
+                            <ion-icon name="home-outline"></ion-icon>
+                        </span>
+                        <span class="title">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/qlhd">
+                        <span class="icon">
+                            <ion-icon name="storefront-outline"></ion-icon>
+                        </span>
+                        <span class="title">Orders</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/sanpham">
+                        <span class="icon">
+                            <ion-icon name="pricetags-outline"></ion-icon>
+                        </span>
+                        <span class="title">Products</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="main">
+            <div class="topbar">
+                <div class="toggle">
+                    <ion-icon name="menu-outline"></ion-icon>
+                </div>
+                <div class="search">
+                     <label>
+                         <form action="/admin/sanpham" method="get">
+                              <input type="text" name="search" placeholder="Search here" th:value="${search}">
+                              <button type="submit"><ion-icon name="search-outline"></ion-icon></button>
+                         </form>
+                    </label>
+                </div>
+                <div class="user">
+				    <img th:src="${session.user != null ? session.user.image : '/images/user/avt.jpg'}" 
+				         alt="User Avatar" 
+				         class="user-avatar">
+				    <div class="user-menu">
+				        <ul>
+				            <li th:if="${session.user == null}">
+							    <a href="#" onclick="showLoginModal()">
+							        <ion-icon name="log-in-outline"></ion-icon> Đăng nhập
+							    </a>
+							</li>
+							<li th:if="${session.user != null}">
+							    <a href="/admin/logout">
+							        <ion-icon name="log-out-outline"></ion-icon> Đăng xuất
+							    </a>
+							</li>
+							<li th:if="${session.user != null}">
+							    <a href="#" onclick="showChangePasswordModal()">
+							        <ion-icon name="key-outline"></ion-icon> Đổi mật khẩu
+							    </a>
+							</li>				            
+				        </ul>
+				    </div>
+				</div>
+				<!-- Modal Đổi mật khẩu -->
+				<div id="changePasswordModal" class="modal">
+				    <div class="modal-content">
+				        <span class="close" onclick="closeChangePasswordModal()">&times;</span>
+				        <h2>Đổi mật khẩu</h2>
+				        <!-- Form đổi mật khẩu -->
+				        <form action="/admin/change-password" method="POST">
+				        	<div class="form-group">
+				        		<label for="currentPassword">Mật khẩu hiện tại:</label>
+				            	<input type="password" id="currentPassword" name="currentPassword" required>
+				        	</div>
+				            <div class="form-group">
+				        		<label for="newPassword">Mật khẩu mới:</label>
+				            	<input type="password" id="newPassword" name="newPassword" required>
+				        	</div>
+				        	<div class="form-group">
+				        		<label for="confirmPassword">Xác nhận mật khẩu:</label>
+				            	<input type="password" id="confirmPassword" name="confirmPassword" required>
+				        	</div>
+				            <div id="error-changePass" class="error-message" th:if="${errorChangePass != null}">
+				                <p th:text="${errorChangePass}"></p>
+				            </div>
+				            <button type="submit" class="btn-login">Đổi mật khẩu</button>
+				        </form>
+				    </div>
+				</div>
+				<div id="successChangePass" style="display: none;" th:if="${successChangePass != null}">
+					<p th:text="${successChangePass}"></p>
+				</div>
+				<div id="successUpdateOrCreate" style="display: none;" th:if="${successUpdateOrCreate != null}">
+					<p th:text="${successUpdateOrCreate}"></p>
+				</div>
+                <!-- Modal for Login -->
+				<div id="loginModal" class="modal">
+				    <div class="modal-content">
+				        <span class="close" onclick="closeLoginModal()">&times;</span>
+				        <div id="error-user" class="error-message" th:if="${errorUser != null}">
+				             <p th:text="${errorUser}"></p>
+				        </div>
+				        <h2>Đăng Nhập</h2>
+				        <form action="/admin/login" method="post">
+				            <div class="form-group">
+				                <label for="username">Tài khoản:</label>
+				                <input type="text" id="username" name="username" required>
+				            </div>
+				            <div class="form-group">
+				                <label for="password">Mật khẩu:</label>
+				                <input type="password" id="password" name="password" required>
+				            </div>
+				            <div id="error-message" class="error-message" th:if="${errorLoginMessage != null}">
+				                <p th:text="${errorLoginMessage}"></p>
+				            </div>
+				            <!-- Tích hợp reCAPTCHA v2 -->
+                			<div class="g-recaptcha" data-sitekey="6LcSULMqAAAAAGwvILzzFH_l2euG3ZRGScBwIZxD" data-callback="onSubmitCaptcha"></div>
+                
+                			<!-- Thêm phần hiển thị thông báo lỗi nếu reCAPTCHA không được xác thực -->
+                			<span id="captcha-error" class="error-message" style="background-color: transparent; border: none;" 
+                			th:if="${errorMessageCaptcha != null}" th:text="${errorMessageCaptcha}"></span>
+                			<br>
+				            <button type="submit" class="btn-login">Đăng Nhập</button>
+				        </form>
+				    </div>
+				</div>
+            </div>
+
+            <div class="details">
+                <div class="recentOrders">
+                    <div class="cardHeader">
+                        <select name="ml" id="selectLoai" onchange="location = this.value;">
+    						<option th:value="@{/admin/sanpham}" 
+            					th:selected="${currentLoai == null}" 
+            					th:text="'Tất cả loại'"></option>
+
+    						<th:block th:each="loai : ${danhSachLoai}">
+        					<option th:value="@{/admin/sanpham?maLoai={maLoai}(maLoai=${loai.maLoai})}" 
+                				th:text="${loai.tenLoai}" 
+                				th:selected="${currentLoai == loai.maLoai}">
+        					</option>
+    						</th:block>
+						</select>
+                        <div class="actions">
+						    <a href="/admin/form-sanpham" class="btn create-btn" style="font-size: 25px">
+						        <ion-icon name="add-circle-outline"></ion-icon>
+						    </a>
+						</div>
+                        
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mã</th>
+                                <th>Tên</th>
+                                <th>Ảnh</th>
+                                <th>Giá</th>
+                                <th>Số lượng</th>
+                                <th>Loại</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <th:block th:if="${#lists.isEmpty(sanPhamPage)}">
+                                <tr>
+                                    <td colspan="7" class="text-center">Không có sản phẩm nào</td>
+                                </tr>
+                            </th:block>
+                            <th:block th:each="sanpham : ${sanPhamPage}">
+                                <tr>
+                                    <td th:text="${sanpham.maSP}"></td>
+                                    <td th:text="${sanpham.tenSP}"></td>
+                                    <td>
+                                        <img th:src="${sanpham.anh}" alt="Ảnh sản phẩm" width="80">
+                                    </td>
+                                    <td th:text="${sanpham.gia}"></td>
+                                    <td th:text="${sanpham.soLuong}"></td>
+                                    <td>
+									  <th:block th:each="loai : ${danhSachLoai}">
+									    <span th:text="${sanpham.maLoai == loai.maLoai ? loai.tenLoai : ''}"></span>
+									  </th:block>
+									</td>
+                                    <td>
+                                        <a th:href="@{/admin/form-sanpham(id=${sanpham.maSP})}" class="btn btn-edit">
+										  <ion-icon name="pencil-outline"></ion-icon>
+										</a>
+										<a th:href="@{/admin/delete-sanpham(id=${sanpham.maSP})}" class="btn btn-delete">
+										  <ion-icon name="trash-outline"></ion-icon>
+										</a>
+                                    </td>
+                                </tr>
+                            </th:block>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+				    <!-- Previous page link -->
+				    <a th:if="${sanPhamPage.hasPrevious() and currentLoai != null}" 
+				       th:href="@{/admin/sanpham?maLoai={maLoai}&page={page}(maLoai=${currentLoai}, page=${sanPhamPage.number})}"
+				       class="pagination-link prev-link">
+				        Previous
+				    </a>
+				    <a th:if="${sanPhamPage.hasPrevious() and search != null}" 
+				       th:href="@{/admin/sanpham?search={search}&page={page}(search=${search}, page=${sanPhamPage.number})}"
+				       class="pagination-link prev-link">
+				        Previous
+				    </a>
+				    <a th:if="${sanPhamPage.hasPrevious() and currentLoai == null and search == null}" 
+				       th:href="@{/admin/sanpham?page={page}(page=${sanPhamPage.number})}"
+				       class="pagination-link prev-link">
+				        Previous
+				    </a>
+				    
+				    <form action="/admin/sanpham" method="get" class="page-navigation-form">
+				        <span>Page: </span>
+				        <input type="number" name="page" 
+				               th:value="${sanPhamPage.number + 1}" 
+				               min="1" 
+				               th:attr="max=${sanPhamPage.totalPages}" 
+				               class="page-input">
+				        <span>of <span th:text="${sanPhamPage.totalPages}"></span></span>
+				        
+				        <!-- Hidden fields to preserve search or category -->
+				        <input type="hidden" name="maLoai" th:if="${currentLoai != null}" th:value="${currentLoai}">
+				        <input type="hidden" name="search" th:if="${search != null}" th:value="${search}">
+				        <button type="submit" class="go-icon">
+				            <ion-icon name="paper-plane-outline"></ion-icon>
+				        </button>
+				    </form>
+				    
+				    <!-- Next page link -->
+				    <a th:if="${sanPhamPage.hasNext() and currentLoai != null}" 
+				       th:href="@{/admin/sanpham?maLoai={maLoai}&page={page}(maLoai=${currentLoai}, page=${sanPhamPage.number + 2})}"
+				       class="pagination-link next-link">
+				        Next
+				    </a>
+				    <a th:if="${sanPhamPage.hasNext() and search != null}" 
+				       th:href="@{/admin/sanpham?search={search}&page={page}(search=${search}, page=${sanPhamPage.number + 2})}"
+				       class="pagination-link next-link">
+				        Next
+				    </a>
+				    <a th:if="${sanPhamPage.hasNext() and currentLoai == null and search == null}" 
+				       th:href="@{/admin/sanpham?page={page}(page=${sanPhamPage.number + 2})}"
+				       class="pagination-link next-link">
+				        Next
+				    </a>
+				</div> 
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/admin.js}"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>

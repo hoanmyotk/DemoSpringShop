@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Welcome</title>
+</head>
+<body>
+    <!-- Hiển thị giá trị của biến tbmodel -->
+    Giá trị của biến tbmodel: <p th:text="${tbmodel}"></p>
+
+    <!-- Hiển thị danh sách trong dsmodel -->
+    Giá trị trong mảng dsmodel:
+    <table class="table"> 
+        <tr>
+            <th>Mã SV</th>
+            <th>Họ Tên</th>
+        </tr>
+        <tr th:each="sv : ${dsmodel}">
+            <td th:text="${sv.masv}"> </td>
+            <td th:text="${sv.hoten}"> </td>
+        </tr>
+    </table>
+
+    <!-- Hiển thị hình ảnh -->
+    <img alt="" th:src="@{/images/user/avt.jpg}" style="width: 100px; height: 100px">
+
+    <!-- Hiển thị giá trị trong session -->
+    Giá trị session: <span th:text="${session.mysession}"></span>
+    <div th:each="svlogin : ${session.mysession}">
+        <span th:text="${svlogin.hoten}"></span>
+    </div>
+
+    <!-- Link test -->
+    <a th:href="@{/hello}">Test</a>
+</body>
+</html>

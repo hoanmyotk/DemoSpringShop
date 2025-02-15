@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+    <div class="container" id="container" th:classappend="${errorMessage2 != null or errorMessage3 != null or errorMessageCaptcha2 != null} ? 'active'">
+        <!-- Form đăng ký -->
+        <div class="form-container sign-up">
+            <form action="/form-sign-in-up/register" method="post">
+                <h1>Create Account</h1>
+                <div class="social-icons">
+                    <a href="#" class="icon"><i class="fa-brands fa-google-plus-g"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-linkedin-in"></i></a>
+                </div>
+                <span>or use your email for registration</span>
+                <input type="text" name="username" placeholder="Tên đăng nhập" required>
+                <span id="password-error" class="error-message" th:if="${errorMessage3 != null}" th:text="${errorMessage3}"></span>
+                <input type="password" id="password" name="password" placeholder="Mật khẩu" required>
+                <input type="password" id="password_check" name="password_check" placeholder="Nhập lại mật khẩu" required>
+                <span id="password-error" class="error-message" th:if="${errorMessage2 != null}" th:text="${errorMessage2}"></span>
+                <input type="text" name="adress" placeholder="Địa chỉ" required>
+                <input type="text" name="fullname" placeholder="Họ và tên" required>
+                <input type="tel" name="phone" placeholder="Số điện thoại" pattern="^\d{10}$" required>
+                <input type="email" name="email" placeholder="Email" required>
+
+                <!-- Tích hợp reCAPTCHA v2 -->
+                <div class="g-recaptcha" data-sitekey="6LcSULMqAAAAAGwvILzzFH_l2euG3ZRGScBwIZxD" data-callback="onSubmitCaptcha"></div>
+                
+                <!-- Thêm phần hiển thị thông báo lỗi nếu reCAPTCHA không được xác thực -->
+                <span id="captcha-error" class="error-message" th:if="${errorMessageCaptcha2 != null}" th:text="${errorMessageCaptcha2}"></span>
+
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+        
+        <!-- Form đăng nhập -->
+        <div class="form-container sign-in">
+            <form action="/form-sign-in-up/login" method="post">
+                <h1>Sign In</h1>
+                <div class="social-icons">
+                    <a href="#" class="icon"><i class="fa-brands fa-google-plus-g"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-linkedin-in"></i></a>
+                </div>
+                <span>or use your email password</span>
+                <input type="text" name="username" placeholder="Tên đăng nhập" required>
+                <input type="password" name="password" placeholder="Mật khẩu" required>
+
+                <!-- Thêm thông báo lỗi nếu có -->
+                <div>
+                    <p th:if="${errorMessage != null}" th:text="${errorMessage}" class="error-message"></p>
+                </div>
+
+                <a href="#">Forget Your Password?</a>
+                
+                <!-- Tích hợp reCAPTCHA v2 cho form đăng nhập -->
+                <div class="g-recaptcha" data-sitekey="6LcSULMqAAAAAGwvILzzFH_l2euG3ZRGScBwIZxD" data-callback="onSubmitCaptcha"></div>
+                <!-- Thêm phần hiển thị thông báo lỗi nếu reCAPTCHA không được xác thực -->
+                <span id="captcha-error" class="error-message" th:if="${errorMessageCaptcha != null}" th:text="${errorMessageCaptcha}"></span>
+
+                <button type="submit">Sign In</button>
+            </form>
+        </div>
+
+        <!-- Phần toggle giữa đăng ký và đăng nhập -->
+        <div class="toggle-container">
+            <div class="toggle">
+                <div class="toggle-panel toggle-left">
+                    <h1>Welcome Back!</h1>
+                    <p>Enter your personal details to use all of site features</p>
+                    <button class="hidden" id="login">Sign In</button>
+                </div>
+                <div class="toggle-panel toggle-right">
+                    <h1>Hello, Friend!</h1>
+                    <p>Register with your personal details to use all of site features</p>
+                    <button class="hidden" id="register">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="successMessage" th:if="${successMessage}" th:text="${successMessage}" style="display: none;"></div>
+    <script th:src="@{js/login.js}"></script>
+    <script>
+        // Hiển thị thông báo bằng alert nếu có thông báo trong model
+        window.onload = function () {
+            const successMessage = document.getElementById('successMessage');
+            if (successMessage) {
+                alert(successMessage.textContent);
+            }
+        };
+
+        // Callback khi reCAPTCHA được xác thực thành công
+        function onSubmitCaptcha() {
+            console.log('Captcha verified successfully');
+        }
+    </script>
+</body>
+</html>
